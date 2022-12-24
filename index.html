@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #00ff00;
+                margin: 0;
+                padding: 0;
+            }
+
+            canvas {
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="main" width="1920" height="1080">
+        </canvas>
+
+        <script>
+            const MAX_CHOPS = 128;
+            const VELOCITY = 32;
+
+            let images = [];
+            for (let i = 0; i < 5; i++) {
+                let image = new Image();
+                image.src = `./chop${i + 1}.png`;
+
+                images.push(image);
+            }
+            console.log(images);
+
+            let canvas = document.getElementById("main");
+
+            let chops = [];
+            for (let i = 0; i < MAX_CHOPS; i++) {
+                let chop = {
+                    image: Math.floor(Math.random() * 4),
+                    x: Math.floor(Math.random() * (canvas.width + 24) - 12),
+                    y: Math.floor(Math.random() * (canvas.height + 24) - 12),
+                    velocity: Math.random() * 64 + 16,
+                };
+
+                chops.push(chop);
+            }
+            console.log(chops);
+
+            let ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = false;
+
+            function update(dt) {
+                for (let i = 0; i < MAX_CHOPS; i++) {
+                    let chop = chops[i];
+                    let image = images[chop.image];
+
+                    if ((chop.y - image.height * 4 >= canvas.height) || (chop.x + image.width * 4 <= 0) || (chop.x >= canvas.width )) {
+                        chop.image = Math.floor(Math.random() * 4);
+                        chop.x = Math.floor(Math.random() * (canvas.width + image.width * 8) - image.width * 4);
+                        chop.y = - image.height * 4;
+                        chop.velocity = Math.random() * 64 + 16;
+                    } else {
+                        chop.x = chop.x + (Math.round(Math.random()) * 2 - 1) * VELOCITY * dt;
+                        chop.y = chop.y + chop.velocity * dt;
+                    }
+                }
+            }
+
+            let last = 0;
+            function draw(dt) {
+                update((dt - last) / 1000);
+                last = dt;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < MAX_CHOPS; i++) {
+                    let chop = chops[i];
+                    let image = images[chop.image];
+                    ctx.drawImage(image, chop.x, chop.y, image.width * 4, image.height * 4);
+                }
+
+                window.requestAnimationFrame(draw);
+            }
+
+            window.requestAnimationFrame(draw);
+        </script>
+    </body>
+</html>
